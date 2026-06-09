@@ -10,7 +10,8 @@ A unique sensor is the combination of:
 giving 10 expected sensors total.
 
 For each sensor this script:
-    * writes a per-sensor folder + CSV (every row kept, anomalies flagged),
+    * writes one per-sensor CSV into the output directory (every row kept,
+      anomalies flagged),
     * augments the CSV with validity flags, difference-from-mean and
       absolute-difference columns (and elapsed time when timestamps exist),
     * computes descriptive voltage statistics over VALID readings only,
@@ -212,11 +213,10 @@ def process_sensor(
         sensor_df["voltage_diff_from_mean"].abs()
     )
 
-    # Steps 3 & 4: one folder + one CSV per sensor (all rows kept, flagged).
+    # Step 4: one CSV per sensor, written directly into the output directory
+    # (all rows kept, anomalies flagged).
     label = sensor_label(group, channel)
-    sensor_folder = OUTPUT_DIR / label
-    sensor_folder.mkdir(parents=True, exist_ok=True)
-    sensor_df.to_csv(sensor_folder / f"{label}.csv", index=False)
+    sensor_df.to_csv(OUTPUT_DIR / f"{label}.csv", index=False)
 
     return {
         "stats": stats,
