@@ -13,116 +13,102 @@ VALIDATION
 ------------------------------------------------------------------------
 All 10 expected sensors are present. [OK]
 No unexpected sensor/channel combinations. [OK]
-Anomalous voltage readings (excluded from stats): 5
-Out-of-range / missing timestamps: 102
+Anomalous voltage readings (excluded from stats): 0
+Out-of-range / missing timestamps: 0
 
 ------------------------------------------------------------------------
 PER-SENSOR VOLTAGE STATISTICS (volts, valid readings only)
 ------------------------------------------------------------------------
 
 [R1_ch1]
-  samples (valid/total) : 27 / 27
-  bad/missing timestamps: 10
-  mean                  : 0.255003844
+  samples (valid/total) : 32 / 32
+  mean                  : 0.347542735
   median                : 0.256043956
-  std dev (sample)      : 0.005042326
+  std dev (sample)      : 0.524743556
   min                   : 0.247496947
-  max                   : 0.263369963
-  peak-to-peak range    : 0.015873016
+  max                   : 3.223076923
+  peak-to-peak range    : 2.975579976
 
 [R1_ch2]
-  samples (valid/total) : 27 / 27
-  bad/missing timestamps: 10
-  mean                  : 0.250752951
-  median                : 0.251159951
-  std dev (sample)      : 0.004836815
-  min                   : 0.238949939
-  max                   : 0.260927961
-  peak-to-peak range    : 0.021978022
+  samples (valid/total) : 31 / 31
+  mean                  : 0.347028241
+  median                : 0.252380952
+  std dev (sample)      : 0.533790851
+  min                   : 0.240170940
+  max                   : 3.223076923
+  peak-to-peak range    : 2.982905983
 
 [R1_ch3]
-  samples (valid/total) : 25 / 26
-  anomalous readings    : 1
-  bad/missing timestamps: 10
-  mean                  : 0.293797314
-  median                : 0.295115995
-  std dev (sample)      : 0.005250779
+  samples (valid/total) : 31 / 31
+  mean                  : 0.387912088
+  median                : 0.293894994
+  std dev (sample)      : 0.525300117
   min                   : 0.282905983
-  max                   : 0.300000000
-  peak-to-peak range    : 0.017094017
+  max                   : 3.218192918
+  peak-to-peak range    : 2.935286935
 
 [R1_ch4]
-  samples (valid/total) : 28 / 28
-  bad/missing timestamps: 10
-  mean                  : 0.168524333
+  samples (valid/total) : 31 / 31
+  mean                  : 0.267151128
   median                : 0.168131868
-  std dev (sample)      : 0.005491274
+  std dev (sample)      : 0.547488865
   min                   : 0.153479853
-  max                   : 0.177899878
-  peak-to-peak range    : 0.024420025
+  max                   : 3.216971917
+  peak-to-peak range    : 3.063492063
 
 [R1_ch5]
-  samples (valid/total) : 27 / 29
-  anomalous readings    : 2
-  bad/missing timestamps: 11
-  mean                  : 0.387685977
+  samples (valid/total) : 31 / 31
+  mean                  : 0.479487179
   median                : 0.387912088
-  std dev (sample)      : 0.005257585
-  min                   : 0.375702076
-  max                   : 0.396459096
-  peak-to-peak range    : 0.020757020
+  std dev (sample)      : 0.509885588
+  min                   : 0.378144078
+  max                   : 3.226739927
+  peak-to-peak range    : 2.848595849
 
 [R2_ch1]
-  samples (valid/total) : 28 / 28
-  bad/missing timestamps: 11
-  mean                  : 0.273835688
-  median                : 0.274358974
-  std dev (sample)      : 0.005352518
+  samples (valid/total) : 32 / 32
+  mean                  : 0.365628816
+  median                : 0.274969475
+  std dev (sample)      : 0.521226234
   min                   : 0.264590965
-  max                   : 0.282905983
-  peak-to-peak range    : 0.018315018
+  max                   : 3.221855922
+  peak-to-peak range    : 2.957264957
 
 [R2_ch2]
-  samples (valid/total) : 25 / 26
-  anomalous readings    : 1
-  bad/missing timestamps: 11
-  mean                  : 0.278363858
+  samples (valid/total) : 32 / 32
+  mean                  : 0.369673382
   median                : 0.278021978
-  std dev (sample)      : 0.006241056
-  min                   : 0.267032967
-  max                   : 0.291452991
-  peak-to-peak range    : 0.024420024
+  std dev (sample)      : 0.519604520
+  min                   : 0.269474969
+  max                   : 3.216971917
+  peak-to-peak range    : 2.947496947
 
 [R2_ch3]
-  samples (valid/total) : 27 / 28
-  anomalous readings    : 1
-  bad/missing timestamps: 10
-  mean                  : 0.279514313
-  median                : 0.279242979
-  std dev (sample)      : 0.004471309
+  samples (valid/total) : 32 / 32
+  mean                  : 0.371504884
+  median                : 0.280463980
+  std dev (sample)      : 0.519030921
   min                   : 0.268253968
-  max                   : 0.286568987
-  peak-to-peak range    : 0.018315019
+  max                   : 3.215750916
+  peak-to-peak range    : 2.947496947
 
 [R2_ch4]
-  samples (valid/total) : 28 / 28
-  bad/missing timestamps: 10
-  mean                  : 0.257308564
+  samples (valid/total) : 32 / 32
+  mean                  : 0.350061050
   median                : 0.257875458
-  std dev (sample)      : 0.005034121
+  std dev (sample)      : 0.522284196
   min                   : 0.246275946
-  max                   : 0.267032967
-  peak-to-peak range    : 0.020757021
+  max                   : 3.212087912
+  peak-to-peak range    : 2.965811966
 
 [R2_ch5]
-  samples (valid/total) : 25 / 25
-  bad/missing timestamps: 9
-  mean                  : 0.380830281
+  samples (valid/total) : 32 / 32
+  mean                  : 0.469719170
   median                : 0.380586081
-  std dev (sample)      : 0.004345575
+  std dev (sample)      : 0.503782356
   min                   : 0.373260073
-  max                   : 0.390354090
-  peak-to-peak range    : 0.017094017
+  max                   : 3.230402930
+  peak-to-peak range    : 2.857142857
 
 ========================================================================
 End of report.
