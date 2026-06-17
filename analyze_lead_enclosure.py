@@ -27,9 +27,11 @@ Assumptions (made explicit)
   drop them; instead we flag them and exclude them from statistics so the
   baseline reflects real sensor behavior. A reading is treated as a valid
   voltage when it is finite and within (VOLTAGE_VALID_MIN, VOLTAGE_VALID_MAX].
-  These bounds bracket a physically plausible RADFET source-follower output
-  (legitimate readings here sit around 0.15-0.40 V); values like 3.8e14, or a
-  hard 0 V alongside a non-zero ADC count, are corruption, not signal.
+  These bounds bracket a physically plausible RADFET source-follower baseline
+  (legitimate readings here sit around 0.15-0.40 V). Excluded as non-baseline:
+  values like 3.8e14, a hard 0 V alongside a non-zero ADC count, and the
+  synchronous 08:22 saturation spike (raw_adc ~4032 / ~3.22 V across all
+  channels for one cycle).
 
 * TIMESTAMPS: values outside [TIMESTAMP_VALID_MIN, TIMESTAMP_VALID_MAX] (e.g.
   the 1969 epoch rows in this dataset) are treated as missing (NaT) so they
@@ -78,7 +80,9 @@ EXPECTED_SENSORS = [
 
 # Plausibility bounds for anomaly detection (see module docstring).
 VOLTAGE_VALID_MIN = 0.0          # exclusive: a real reading is positive
-VOLTAGE_VALID_MAX = 5.0          # volts: RADFET follower output ceiling
+VOLTAGE_VALID_MAX = 1.0          # volts: baseline tops out ~0.4 V; readings
+                                 # above 1 V are saturation/glitch (e.g. the
+                                 # 08:22 raw_adc~4032 / ~3.22 V spike)
 TIMESTAMP_VALID_MIN = pd.Timestamp("2000-01-01")
 TIMESTAMP_VALID_MAX = pd.Timestamp("2100-01-01")
 
@@ -156,7 +160,10 @@ def compute_statistics(valid_voltages: pd.Series) -> dict:
         "std": valid_voltages.std(),
         "min": valid_voltages.min(),
         "max": valid_voltages.max(),
-        "peak_to_peak": valid_voltages.max() - valid_voltages.min(),
+        # Mean absolute difference from the mean (mean absolute deviation).
+        # NOTE: the plain average difference from the mean is ~0 by definition,
+        # so this absolute version is the informative spread metric.
+        "mean_abs_diff": (valid_voltages - valid_voltages.mean()).abs().mean(),
     }
 
 
@@ -320,7 +327,7 @@ def build_report(
         lines.append(f"  std dev (sample)      : {std_text}")
         lines.append(f"  min                   : {s['min']:.9f}")
         lines.append(f"  max                   : {s['max']:.9f}")
-        lines.append(f"  peak-to-peak range    : {s['peak_to_peak']:.9f}")
+        lines.append(f"  mean abs diff (MAD)   : {s['mean_abs_diff']:.9f}")
 
     lines.append("")
     lines.append(sep)

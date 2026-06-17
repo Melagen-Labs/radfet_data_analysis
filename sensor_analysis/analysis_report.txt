@@ -6,14 +6,14 @@ Output directory   : C:\Coding_Projects\radfet_data_analysis\sensor_analysis
 Expected sensors   : 10
 Sensors found      : 10
 Timestamps         : available (sorted; elapsed time from first valid reading)
-Valid voltage band : (0.0, 5.0] V
+Valid voltage band : (0.0, 1.0] V
 
 ------------------------------------------------------------------------
 VALIDATION
 ------------------------------------------------------------------------
 All 10 expected sensors are present. [OK]
 No unexpected sensor/channel combinations. [OK]
-Anomalous voltage readings (excluded from stats): 0
+Anomalous voltage readings (excluded from stats): 10
 Out-of-range / missing timestamps: 0
 
 ------------------------------------------------------------------------
@@ -21,94 +21,104 @@ PER-SENSOR VOLTAGE STATISTICS (volts, valid readings only)
 ------------------------------------------------------------------------
 
 [R1_ch1]
-  samples (valid/total) : 32 / 32
-  mean                  : 0.347542735
+  samples (valid/total) : 31 / 32
+  anomalous readings    : 1
+  mean                  : 0.254783568
   median                : 0.256043956
-  std dev (sample)      : 0.524743556
+  std dev (sample)      : 0.004474975
   min                   : 0.247496947
-  max                   : 3.223076923
-  peak-to-peak range    : 2.975579976
+  max                   : 0.262148962
+  mean abs diff (MAD)   : 0.003824364
 
 [R1_ch2]
-  samples (valid/total) : 31 / 31
-  mean                  : 0.347028241
-  median                : 0.252380952
-  std dev (sample)      : 0.533790851
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.251159951
+  median                : 0.251770451
+  std dev (sample)      : 0.004557302
   min                   : 0.240170940
-  max                   : 3.223076923
-  peak-to-peak range    : 2.982905983
+  max                   : 0.258485958
+  mean abs diff (MAD)   : 0.003581604
 
 [R1_ch3]
-  samples (valid/total) : 31 / 31
-  mean                  : 0.387912088
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.293569394
   median                : 0.293894994
-  std dev (sample)      : 0.525300117
+  std dev (sample)      : 0.004914784
   min                   : 0.282905983
-  max                   : 3.218192918
-  peak-to-peak range    : 2.935286935
+  max                   : 0.301221001
+  mean abs diff (MAD)   : 0.003994031
 
 [R1_ch4]
-  samples (valid/total) : 31 / 31
-  mean                  : 0.267151128
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.168823769
   median                : 0.168131868
-  std dev (sample)      : 0.547488865
+  std dev (sample)      : 0.005352881
   min                   : 0.153479853
-  max                   : 3.216971917
-  peak-to-peak range    : 3.063492063
+  max                   : 0.177899878
+  mean abs diff (MAD)   : 0.003994031
 
 [R1_ch5]
-  samples (valid/total) : 31 / 31
-  mean                  : 0.479487179
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.387912088
   median                : 0.387912088
-  std dev (sample)      : 0.509885588
+  std dev (sample)      : 0.004241809
   min                   : 0.378144078
-  max                   : 3.226739927
-  peak-to-peak range    : 2.848595849
+  max                   : 0.396459096
+  mean abs diff (MAD)   : 0.003093203
 
 [R2_ch1]
-  samples (valid/total) : 32 / 32
-  mean                  : 0.365628816
-  median                : 0.274969475
-  std dev (sample)      : 0.521226234
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.273382173
+  median                : 0.274358974
+  std dev (sample)      : 0.005164367
   min                   : 0.264590965
-  max                   : 3.221855922
-  peak-to-peak range    : 2.957264957
+  max                   : 0.281684982
+  mean abs diff (MAD)   : 0.004363044
 
 [R2_ch2]
-  samples (valid/total) : 32 / 32
-  mean                  : 0.369673382
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.278103378
   median                : 0.278021978
-  std dev (sample)      : 0.519604520
+  std dev (sample)      : 0.005735375
   min                   : 0.269474969
-  max                   : 3.216971917
-  peak-to-peak range    : 2.947496947
+  max                   : 0.291452991
+  mean abs diff (MAD)   : 0.004563831
 
 [R2_ch3]
-  samples (valid/total) : 32 / 32
-  mean                  : 0.371504884
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.279690680
   median                : 0.280463980
-  std dev (sample)      : 0.519030921
+  std dev (sample)      : 0.004099858
   min                   : 0.268253968
-  max                   : 3.215750916
-  peak-to-peak range    : 2.947496947
+  max                   : 0.286568987
+  mean abs diff (MAD)   : 0.003022656
 
 [R2_ch4]
-  samples (valid/total) : 32 / 32
-  mean                  : 0.350061050
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.257753358
   median                : 0.257875458
-  std dev (sample)      : 0.522284196
+  std dev (sample)      : 0.005166357
   min                   : 0.246275946
-  max                   : 3.212087912
-  peak-to-peak range    : 2.965811966
+  max                   : 0.267032967
+  mean abs diff (MAD)   : 0.004070004
 
 [R2_ch5]
-  samples (valid/total) : 32 / 32
-  mean                  : 0.469719170
+  samples (valid/total) : 30 / 31
+  anomalous readings    : 1
+  mean                  : 0.380667481
   median                : 0.380586081
-  std dev (sample)      : 0.503782356
+  std dev (sample)      : 0.004029666
   min                   : 0.373260073
-  max                   : 3.230402930
-  peak-to-peak range    : 2.857142857
+  max                   : 0.390354090
+  mean abs diff (MAD)   : 0.003180030
 
 ========================================================================
 End of report.
