@@ -1,0 +1,6 @@
+channel,shielding,dose_rad,trial_halfrange_rad,calib_sigma_rad,n_trials,attenuation_factor,reduction_pct
+1,None (bare),8087.13,133.74,1260.42,2,1.0,0.0
+2,2 mm Al,5173.35,250.15,910.09,2,1.563,36.0
+3,MLC1,4235.27,51.57,785.82,2,1.909,47.6
+4,MLC1-b + Al,2854.32,43.77,518.75,2,2.833,64.7
+5,MLC2,3543.45,56.62,652.95,2,2.282,56.2
