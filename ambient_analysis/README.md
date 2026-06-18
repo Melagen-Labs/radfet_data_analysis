@@ -25,8 +25,16 @@ install `matplotlib` to also get `output/plots/`.
 
 ## Method
 
+- **delta_v is recomputed from `raw_adc`**, not read from the CSV. The CSV's
+  `voltage` column is mislabeled (it is a delta_v) and the baseline subtracted
+  to produce it changed over time, so it is not comparable across days. We use
+  `raw_voltage = raw_adc·(5.0/4095)` then `delta_v = raw_voltage − baseline`,
+  with per-group baselines `R1 = 1.71 V`, `R2 = 1.73 V`. A constant baseline
+  cancels in `after − before`, so the shift test is robust to the baseline value.
 - **σ_V** per sensor comes from the lead-brick report (characterized noise
-  floor). The uncertainty on a window mean of *n* readings is σ_V/√n.
+  floor). The uncertainty on a window mean of *n* readings is σ_V/√n. It is a
+  linear transform of `raw_adc` at the same scale, so the per-reading scatter
+  carries over unchanged.
 - **Per-sensor shift**: `shift = after − before`, tested as
   `z = shift / (σ_V·√(1/n_before + 1/n_after))`, two-sided `p = erfc(|z|/√2)`.
 - **Collective shift**: a sign / exact-binomial test on how many sensors went

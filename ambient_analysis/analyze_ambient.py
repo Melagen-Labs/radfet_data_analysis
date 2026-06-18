@@ -78,9 +78,25 @@ PLOTS_DIR = OUTPUT_DIR / "plots"
 # Source column names (same schema as the lead-brick / sample data).
 GROUP_COL = "sensor_group"
 CHANNEL_COL = "channel"
-VOLTAGE_COL = "voltage"
 ADC_COL = "raw_adc"
 TIMESTAMP_COL = "timestamp"
+
+# The CSV's own "voltage" column is IGNORED: it was mislabeled (it is really a
+# delta_v) and the baseline that was subtracted to produce it changed over time,
+# so it is not comparable across days. We instead recompute delta_v ourselves
+# from the untouched raw ADC count:
+#
+#     raw_voltage = raw_adc * (ADC_VREF_V / ADC_FULL_SCALE)
+#     delta_v     = raw_voltage - baseline[group]
+#
+# The per-group baselines below are the agreed reference voltages.
+ADC_VREF_V = 5.0
+ADC_FULL_SCALE = 4095
+DV_BASELINE_BY_GROUP = {"R1": 1.71, "R2": 1.73}
+DV_BASELINE_DEFAULT = 1.71
+
+RAW_VOLTAGE_COL = "raw_voltage"   # derived: raw_adc -> volts
+VOLTAGE_COL = "delta_v"           # derived: the delta_v we actually analyze
 
 # The 10 sensors we expect: every (group, channel) pairing.
 EXPECTED_GROUPS = ["R1", "R2"]
@@ -95,9 +111,11 @@ SATURATION_ADC = 4090
 TIMESTAMP_VALID_MIN = pd.Timestamp("2000-01-01")
 TIMESTAMP_VALID_MAX = pd.Timestamp("2100-01-01")
 
-# Only consider data on/after this date (the start of the relevant span). The
-# END of the span is detected from the data, never hard-coded.
-SPAN_START = pd.Timestamp("2026-06-10")
+# Only consider data on/after this date. The first ~3 days (Jun 10-13) are a
+# one-time sensor warm-up/settling transition (plus a Jun-12 glitch and the
+# ch4 Jun-13 step), so the stable regime begins Jun 14. The END of the span is
+# detected from the data, never hard-coded.
+SPAN_START = pd.Timestamp("2026-06-14")
 
 # --------------------------------------------------------------------------- #
 # Comparison periods (CONFIGURABLE -- set the exact times you want to compare).
@@ -112,7 +130,7 @@ SPAN_START = pd.Timestamp("2026-06-10")
 #   AFTER_ANCHOR  = "end"   -> the most-recent W of the after period,
 # which compares the earliest-available data against the most-recent data.
 # --------------------------------------------------------------------------- #
-BEFORE_START: str | None = "2026-06-11 00:00:00"
+BEFORE_START: str | None = "2026-06-14 00:00:00"
 BEFORE_END: str | None = None
 AFTER_START: str | None = None
 AFTER_END: str | None = None      # None => latest valid timestamp ("present day")
@@ -210,6 +228,13 @@ def load_data(raw_dir: Path) -> tuple[pd.DataFrame, list[str]]:
         part["__source_file"] = f.name
         frames.append(part)
     df = pd.concat(frames, ignore_index=True)
+
+    # Recompute delta_v from the raw ADC count (see config note). The CSV's own
+    # "voltage" column is deliberately not used.
+    adc = pd.to_numeric(df[ADC_COL], errors="coerce")
+    df[RAW_VOLTAGE_COL] = adc * (ADC_VREF_V / ADC_FULL_SCALE)
+    baseline = df[GROUP_COL].map(DV_BASELINE_BY_GROUP).fillna(DV_BASELINE_DEFAULT)
+    df[VOLTAGE_COL] = df[RAW_VOLTAGE_COL] - baseline
 
     # Parse timestamps; out-of-window values (e.g. 1969 epoch) -> NaT.
     df[TIMESTAMP_COL] = pd.to_datetime(df[TIMESTAMP_COL], errors="coerce")
@@ -395,7 +420,11 @@ def build_report(results_by_window: dict, default_min: int, periods: dict,
     lines.append(f"Measurement sigma  : per-sensor lead-brick sigma_V "
                  f"(coverage factor {SIGMA_V_COVERAGE:g})")
     lines.append(f"  sigma_V source   : {sigma_source}")
-    lines.append(f"Valid voltage band : ({VOLTAGE_VALID_MIN}, {VOLTAGE_VALID_MAX}] V; "
+    base_str = ", ".join(f"{g}:{b:g}V" for g, b in DV_BASELINE_BY_GROUP.items())
+    lines.append(f"delta_v definition : raw_adc * ({ADC_VREF_V:g}/{ADC_FULL_SCALE}) "
+                 f"- baseline ({base_str})")
+    lines.append("  (CSV 'voltage' column ignored: mislabeled, inconsistent baseline over time)")
+    lines.append(f"Valid delta_v band : ({VOLTAGE_VALID_MIN}, {VOLTAGE_VALID_MAX}] V; "
                  f"saturation raw_adc >= {SATURATION_ADC}")
     lines.append("")
     lines.append(f"Span (detected)    : {_fmt_ts(periods['span_min'])} "
