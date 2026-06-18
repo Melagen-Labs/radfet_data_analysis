@@ -139,9 +139,13 @@ BEFORE_ANCHOR = "start"   # "start" or "end"
 AFTER_ANCHOR = "end"      # "start" or "end"
 
 # Averaging-window lengths to trial, in minutes. The default (committed) window
-# is chosen from this list after the sensitivity comparison is shown.
-WINDOW_LENGTHS_MIN = [30, 45, 60, 90, 120, 180]
-DEFAULT_WINDOW_MIN = 60
+# is chosen from this list after the sensitivity comparison is shown. The list
+# extends past 3 hr up to multi-day windows so the trend can be seen to peak and
+# then fall off (once the before/after windows approach each other the shift
+# shrinks; see report note).
+WINDOW_LENGTHS_MIN = [30, 60, 120, 180, 240, 360, 480, 720, 1080,
+                      1440, 2160, 2880, 4320, 5760]
+DEFAULT_WINDOW_MIN = 120
 
 # Coverage factor on every sigma_V (1.0 = raw 1-sigma from the report).
 SIGMA_V_COVERAGE = 1.0
