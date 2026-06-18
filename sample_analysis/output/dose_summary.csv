@@ -1,6 +1,6 @@
-channel,shielding,dose_rad,trial_halfrange_rad,calib_sigma_rad,n_trials,attenuation_factor,reduction_pct
-1,None (bare),8087.13,133.74,1260.42,2,1.0,0.0
-2,2 mm Al,5173.35,250.15,910.09,2,1.563,36.0
-3,MLC1,4235.27,51.57,785.82,2,1.909,47.6
-4,MLC1-b + Al,2854.32,43.77,518.75,2,2.833,64.7
-5,MLC2,3543.45,56.62,652.95,2,2.282,56.2
+channel,shielding,dvt_mean_v,dvt_sigma_v,dose_rad,dose_sigma_rad,reduction_pct,z_vs_bare,p_vs_bare,significance
+1,None (bare),1.74538,0.00338,8105.75,1241.96,0.0,,,reference
+2,2 mm Al,1.35241,0.00357,5358.88,802.22,33.9,79.93,0.00e+00,>3 sigma
+3,MLC1,1.19989,0.00315,4225.93,774.1,47.9,118.06,0.00e+00,>3 sigma
+4,MLC1-b + Al,0.9091,0.00372,2852.67,510.37,64.8,166.4,0.00e+00,>3 sigma
+5,MLC2,1.0589,0.00292,3540.41,641.6,56.3,153.6,0.00e+00,>3 sigma

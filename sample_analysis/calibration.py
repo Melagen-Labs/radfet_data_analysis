@@ -37,7 +37,9 @@ therefore part of the conversion (see `select_curve_and_dose`).
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
@@ -103,6 +105,91 @@ UNSHIELDED_CHANNEL = 1
 
 # The two read-out groups treated as repeat trials of the same sensors.
 TRIAL_GROUPS = ["R1", "R2"]
+
+
+# --------------------------------------------------------------------------- #
+# Per-sensor measured voltage uncertainty (the "lead-brick" noise floor)
+# --------------------------------------------------------------------------- #
+#
+# In the lead-enclosure run the dose is essentially fixed, so each sensor's
+# voltage spread is its MEASUREMENT uncertainty sigma_V (a characterized
+# per-sensor noise floor). These 1-sigma values are the "std dev (sample)"
+# figures reported per sensor in sensor_analysis/analysis_report.txt, and are
+# used as the `sigma_dvt` term in dose_uncertainty() and as the measurement
+# uncertainty in the significance tests.
+#
+# The numbers are READ DIRECTLY from analysis_report.txt at import time, so they
+# stay in sync whenever the lead-brick analysis is re-run. The dict below is a
+# transcribed fallback used only if the report cannot be found/parsed.
+_FALLBACK_SIGMA_V: dict[tuple[str, int], float] = {
+    ("R1", 1): 0.004474975,
+    ("R1", 2): 0.004557302,
+    ("R1", 3): 0.004914784,
+    ("R1", 4): 0.005352881,
+    ("R1", 5): 0.004241809,
+    ("R2", 1): 0.005164367,
+    ("R2", 2): 0.005735375,
+    ("R2", 3): 0.004099858,
+    ("R2", 4): 0.005166357,
+    ("R2", 5): 0.004029666,
+}
+
+# Path to the lead-brick analysis report (the source of per-sensor sigma_V).
+LEAD_BRICK_REPORT = (
+    Path(__file__).resolve().parent.parent / "sensor_analysis" / "analysis_report.txt"
+)
+
+# Coverage factor applied to every sigma_V (1.0 = raw 1-sigma from the report,
+# 2.0 = 2-sigma, etc.). Falls back to SIGMA_V_DEFAULT for unlisted sensors.
+SIGMA_V_COVERAGE = 1.0
+SIGMA_V_DEFAULT = 0.005
+
+
+def parse_sigma_v_from_report(path: Path) -> dict[tuple[str, int], float]:
+    """
+    Extract per-sensor sigma_V from a lead-brick analysis_report.txt.
+
+    The report lists each sensor as a "[R1_ch3]" block followed by an indented
+    "std dev (sample) : <value>" line. Returns {(group, channel): sigma_V}.
+    Blocks with "n/a" std (fewer than 2 readings) are skipped.
+    """
+    text = path.read_text(encoding="utf-8")
+    result: dict[tuple[str, int], float] = {}
+    current: tuple[str, int] | None = None
+    header = re.compile(r"^\[(R\d+)_ch(\d+)\]")
+    std_line = re.compile(r"std dev \(sample\)\s*:\s*([0-9eE.+-]+)")
+    for line in text.splitlines():
+        m = header.match(line.strip())
+        if m:
+            current = (m.group(1), int(m.group(2)))
+            continue
+        if current is not None:
+            s = std_line.search(line)
+            if s:
+                try:
+                    result[current] = float(s.group(1))
+                except ValueError:
+                    pass  # "n/a (n<2)" etc. -> leave unset, fall back later
+                current = None
+    return result
+
+
+# Load sigma_V from the report at import; fall back to the transcribed dict.
+SIGMA_V_SOURCE = "fallback (transcribed)"
+try:
+    MEASURED_SIGMA_V_BY_SENSOR = parse_sigma_v_from_report(LEAD_BRICK_REPORT)
+    if MEASURED_SIGMA_V_BY_SENSOR:
+        SIGMA_V_SOURCE = f"parsed from {LEAD_BRICK_REPORT.name}"
+    else:
+        MEASURED_SIGMA_V_BY_SENSOR = dict(_FALLBACK_SIGMA_V)
+except (OSError, FileNotFoundError):
+    MEASURED_SIGMA_V_BY_SENSOR = dict(_FALLBACK_SIGMA_V)
+
+
+def measured_sigma_v(group: str, channel: int) -> float:
+    """Per-sensor measurement uncertainty sigma_V [V], with coverage factor."""
+    base = MEASURED_SIGMA_V_BY_SENSOR.get((group, channel), SIGMA_V_DEFAULT)
+    return base * SIGMA_V_COVERAGE
 
 
 def shielding_label(channel: int) -> str:

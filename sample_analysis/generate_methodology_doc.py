@@ -225,35 +225,48 @@ def build() -> None:
     # ---- 7. Aggregation & combination -----------------------------------
     add_heading(doc, "7. Per-sensor aggregation and trial combination", 1)
     add_numbered(doc, "For each (sensor_group, channel), average dVt over the "
-                      "valid readings to get the sensor's mean dVt, with its "
-                      "sample standard deviation and standard error of the mean "
-                      "(SEM = std / sqrt(n)).")
-    add_numbered(doc, "Convert the mean dVt to dose using the selected curve "
-                      "(Section 5).")
-    add_numbered(doc, "Combine the R1 and R2 dose estimates for each channel "
-                      "into a single per-configuration dose (their mean). Half "
-                      "the spread between the two trials is reported as a "
-                      "trial-to-trial uncertainty.")
+                      "valid readings to get the sensor's mean dVt. The "
+                      "measurement uncertainty on that mean is the characterized "
+                      "per-sensor sigma_V from the lead-brick run (Section 8), "
+                      "not an SEM re-estimated from flight data.")
+    add_numbered(doc, "Combine the R1 and R2 trials per channel by "
+                      "inverse-variance weighting in voltage space, giving a "
+                      "combined dVt and its combined sigma_V. (Half the spread "
+                      "between the two trial doses is also reported as a "
+                      "repeatability check.)")
+    add_numbered(doc, "Convert the combined dVt to dose using the selected curve "
+                      "(Section 5), and attach the full propagated uncertainty "
+                      "(Section 8).")
 
     # ---- 8. Uncertainty --------------------------------------------------
     add_heading(doc, "8. Uncertainty quantification", 1)
     add_body(doc,
-             "We propagate a 1-sigma dose uncertainty through the inversion "
-             "Dose = (dVt/A)^(1/B), combining measurement noise on dVt with the "
-             "calibration uncertainties sigma(A) and sigma(B):")
+             "Per-sensor measurement uncertainty (sigma_V). In the lead-brick "
+             "run the dose is essentially fixed, so each sensor's voltage spread "
+             "is its characterized measurement noise floor. We take the "
+             "per-sensor 'std dev (sample)' values directly from "
+             "sensor_analysis/analysis_report.txt (read at runtime, so they stay "
+             "in sync if the lead-brick analysis is re-run). These are of order "
+             "0.004-0.006 V and differ slightly per sensor. A coverage factor "
+             "(e.g. 2-sigma) can be applied centrally if a more conservative "
+             "budget is wanted.")
+    add_body(doc,
+             "Absolute dose uncertainty. We propagate a 1-sigma dose uncertainty "
+             "through the inversion Dose = (dVt/A)^(1/B), combining the measured "
+             "sigma_V with the calibration uncertainties sigma(A) and sigma(B):")
     add_mono(doc,
              "(sigma_Dose / Dose)^2 =\n"
-             "      ( sigma_dVt / (B * dVt) )^2     # measurement (SEM on dVt)\n"
-             "    + ( sigma_A  / (B * A)   )^2     # calibration uncertainty in A\n"
+             "      ( sigma_V    / (B * dVt) )^2    # measurement (lead-brick sigma_V)\n"
+             "    + ( sigma_A   / (B * A)   )^2    # calibration uncertainty in A\n"
              "    + ( ln(Dose) * sigma_B / B )^2   # calibration uncertainty in B")
     add_body(doc,
-             "The measurement term uses the SEM of the sensor's readings. We "
-             "report both this propagated 1-sigma and the independent "
-             "trial-to-trial spread (R1 vs R2); broad disagreement between the "
-             "two is a flag for an unmodeled systematic.")
+             "This full sigma is the error bar on the ABSOLUTE dose of a single "
+             "configuration. The two trials R1 and R2 are combined by "
+             "inverse-variance weighting in voltage space; the spread between "
+             "them is reported separately as a repeatability check.")
 
-    # ---- 9. Shielding effectiveness -------------------------------------
-    add_heading(doc, "9. Shielding-effectiveness analysis", 1)
+    # ---- 9. Shielding effectiveness & significance ----------------------
+    add_heading(doc, "9. Shielding effectiveness and statistical significance", 1)
     add_body(doc,
              "Using the bare sensor (channel "
              f"{UNSHIELDED_CHANNEL}) as the reference, each shielded "
@@ -261,9 +274,32 @@ def build() -> None:
     add_bullet(doc, "Attenuation factor = dose(bare) / dose(config)  "
                     "(higher means more effective shielding).")
     add_bullet(doc, "Dose reduction (%) = (1 - dose(config) / dose(bare)) x 100.")
+
     add_body(doc,
-             "These are reported per configuration alongside the combined dose "
-             "and its uncertainty.")
+             "Is the difference statistically significant? This is the key "
+             "question and it has an important subtlety. The same calibration "
+             "curve is applied to every sensor, so the calibration "
+             "uncertainties sigma(A), sigma(B) are COMMON-MODE: they shift all "
+             "configurations together and largely cancel in a DIFFERENCE between "
+             "two configurations. Adding them into a significance test would "
+             "make us under-confident. We therefore test significance in "
+             "VOLTAGE space, using only the measured sigma_V:")
+    add_mono(doc,
+             "z = ( dVt_bare - dVt_config ) / sqrt( sigma_V_bare^2 + sigma_V_config^2 )")
+    add_body(doc,
+             "Because dose is a monotonic function of dVt, a significant "
+             "difference in dVt is a significant difference in dose, and this "
+             "avoids entangling the (correlated) calibration error. The combined "
+             "sigma_V per configuration comes from the inverse-variance "
+             "combination of its R1 and R2 trials. We flag |z| > 1.96 as "
+             "significant at 95% (~2 sigma) and |z| > 3 at ~99.7% (~3 sigma), "
+             "and also report the two-sided p-value.")
+    add_body(doc,
+             "Outputs include each configuration tested against the bare sensor "
+             "and a full pairwise |z| matrix across all five configurations, so "
+             "neighbouring stacks (which may differ by little) can be compared "
+             "directly. The absolute dose with its full uncertainty (Section 8) "
+             "is reported alongside for magnitude.")
 
     # ---- 10. Outputs -----------------------------------------------------
     add_heading(doc, "10. Outputs", 1)
