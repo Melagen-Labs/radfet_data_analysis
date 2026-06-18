@@ -1,0 +1,82 @@
+==============================================================================
+RADFET AMBIENT LOG - LONG-DURATION VOLTAGE-SHIFT ANALYSIS
+==============================================================================
+Raw-data directory : C:\Coding_Projects\radfet_data_analysis\raw_data\historic_data
+Daily files        : 9 (radfet_2026-06-10.csv .. radfet_2026-06-18.csv)
+Output directory   : C:\Coding_Projects\radfet_data_analysis\ambient_analysis\output
+Sensors            : 10 (R1, R2 x ch1-5)
+Measurement sigma  : per-sensor lead-brick sigma_V (coverage factor 1)
+  sigma_V source   : parsed from analysis_report.txt
+Valid voltage band : (0.0, 1.0] V; saturation raw_adc >= 4090
+
+Span (detected)    : 2026-06-10 00:00:00 -> 2026-06-18 09:38:01  (8.40 days)
+  ('after' end is the latest valid timestamp = present day; not hard-coded)
+Before period      : 2026-06-11 00:00:00 -> 2026-06-18 09:38:01  (window anchored at start)
+After  period      : 2026-06-10 00:00:00 -> 2026-06-18 09:38:01  (window anchored at end)
+
+------------------------------------------------------------------------------
+DATA QUALITY
+------------------------------------------------------------------------------
+Total readings       : 113685
+Valid readings       : 112925
+Rejected (band/NaN)  : 760
+Rejected (saturation): 0
+Bad/missing timestamp: 0
+
+------------------------------------------------------------------------------
+WINDOW-LENGTH SENSITIVITY (how the result depends on averaging window)
+------------------------------------------------------------------------------
+  For each window length W, both edges average W minutes of data. n_up/n_down
+  is the per-sensor shift direction count; sign_p is the two-sided exact
+  binomial test; Stouffer Z combines the per-sensor z's (Z=sum z_i/sqrt N).
+
+ W[min]  n_use  up  dn  >2s  >3s     sign_p  Stouffer_Z  Stouffer_p  consensus
+     30     10   0  10   10   10   1.95e-03     -115.85    0.00e+00       down
+     45     10   0  10   10   10   1.95e-03     -142.13    0.00e+00       down
+     60     10   0  10   10   10   1.95e-03     -164.50    0.00e+00       down *
+     90     10   0  10   10   10   1.95e-03     -199.94    0.00e+00       down
+    120     10   0  10   10   10   1.95e-03     -231.29    0.00e+00       down
+    180     10   0  10   10   10   1.95e-03     -282.09    0.00e+00       down
+
+  ('*' marks the committed default window = 60 min. The collective
+   direction and Stouffer significance should be checked for stability across
+   W; per-sensor z grows ~sqrt(n) with W, so larger windows sharpen weak shifts.)
+
+------------------------------------------------------------------------------
+PER-SENSOR SHIFT  (default window = 60 min)
+------------------------------------------------------------------------------
+  sensor  n_b  n_a   before[V]    after[V]    shift[V]   sigV[V]       z          p   dir   verdict
+  R1_ch1   60   60    0.257916    0.246744   -0.011172  0.004475  -13.67   1.44e-42  down  >3 sigma
+  R1_ch2   60   60    0.252381    0.240008   -0.012373  0.004557  -14.87   5.13e-50  down  >3 sigma
+  R1_ch3   60   60    0.294933    0.284147   -0.010786  0.004915  -12.02   2.80e-33  down  >3 sigma
+  R1_ch4   60   60    0.401913    0.159483   -0.242430  0.005353 -248.06   0.00e+00  down  >3 sigma
+  R1_ch5   60   60    0.390985    0.378124   -0.012861  0.004242  -16.61   6.20e-62  down  >3 sigma
+  R2_ch1   60   60    0.275438    0.265405   -0.010033  0.005164  -10.64   1.93e-26  down  >3 sigma
+  R2_ch2   60   60    0.282011    0.269434   -0.012576  0.005735  -12.01   3.14e-33  down  >3 sigma
+  R2_ch3   60   60    0.281848    0.271490   -0.010358  0.004100  -13.84   1.50e-43  down  >3 sigma
+  R2_ch4   60   60    0.402971    0.249166   -0.153805  0.005166 -163.06   0.00e+00  down  >3 sigma
+  R2_ch5   60   60    0.381644    0.370309   -0.011335  0.004030  -15.41   1.47e-53  down  >3 sigma
+
+  shift = after - before (sign = direction). z = shift / sigma_shift,
+  sigma_shift = sigma_V * sqrt(1/n_before + 1/n_after).
+
+------------------------------------------------------------------------------
+COLLECTIVE SHIFT  (default window = 60 min)
+------------------------------------------------------------------------------
+Sensors usable               : 10
+Moved up / down              : 0 up, 10 down (consensus: down)
+Individually significant     : 10 at >2 sigma, 10 at >3 sigma
+
+Sign / binomial test (are up vs down counts a fair coin?)
+  two-sided p                : 1.953e-03  (>3 sigma)
+Stouffer combined z (consistent small shifts add up)
+  Z = sum(z_i)/sqrt(N)       : -164.50
+  two-sided p                : 0.000e+00  (>3 sigma)
+
+  Interpretation: even when individual sensors are 'n.s.', a consistent
+  direction across all sensors (low sign_p) and/or a large Stouffer Z is
+  strong evidence of a real, systematic drift rather than noise.
+
+==============================================================================
+End of report.
+==============================================================================
