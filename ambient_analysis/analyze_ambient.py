@@ -145,7 +145,7 @@ AFTER_ANCHOR = "end"      # "start" or "end"
 # shrinks; see report note).
 WINDOW_LENGTHS_MIN = [30, 60, 120, 180, 240, 360, 480, 720, 1080,
                       1440, 2160, 2880, 4320, 5760]
-DEFAULT_WINDOW_MIN = 120
+DEFAULT_WINDOW_MIN = 180
 
 # Coverage factor on every sigma_V (1.0 = raw 1-sigma from the report).
 SIGMA_V_COVERAGE = 1.0

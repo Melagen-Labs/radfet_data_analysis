@@ -35,8 +35,8 @@ WINDOW-LENGTH SENSITIVITY (how the result depends on averaging window)
  W[min]  n_use  up  dn  >2s  >3s     sign_p  Stouffer_Z  Stouffer_p  consensus
      30     10   8   2    0    0   1.09e-01        1.41    1.59e-01         up
      60     10   8   2    0    0   1.09e-01        2.09    3.65e-02         up
-    120     10  10   0    2    0   1.95e-03        3.64    2.68e-04         up *
-    180     10  10   0    1    0   1.95e-03        4.34    1.44e-05         up
+    120     10  10   0    2    0   1.95e-03        3.64    2.68e-04         up
+    180     10  10   0    1    0   1.95e-03        4.34    1.44e-05         up *
     240     10  10   0    2    1   1.95e-03        5.14    2.72e-07         up
     360     10  10   0    5    1   1.95e-03        5.85    4.92e-09         up
     480     10  10   0    6    2   1.95e-03        6.81    9.90e-12         up
@@ -48,40 +48,40 @@ WINDOW-LENGTH SENSITIVITY (how the result depends on averaging window)
    4320     10  10   0    6    3   1.95e-03        8.32    9.00e-17         up
    5760     10  10   0    0    0   1.95e-03        2.21    2.70e-02         up
 
-  ('*' marks the committed default window = 120 min. The collective
+  ('*' marks the committed default window = 180 min. The collective
    direction and Stouffer significance should be checked for stability across
    W; per-sensor z grows ~sqrt(n) with W, so larger windows sharpen weak shifts.)
 
 ------------------------------------------------------------------------------
-PER-SENSOR SHIFT  (default window = 120 min)
+PER-SENSOR SHIFT  (default window = 180 min)
 ------------------------------------------------------------------------------
   sensor  n_b  n_a   before[V]    after[V]    shift[V]   sigV[V]       z          p   dir   verdict
-  R1_ch1  120  120    0.236174    0.236591   +0.000417  0.004475   +0.72   4.70e-01    up      n.s.
-  R1_ch2  120  120    0.228512    0.229937   +0.001425  0.004557   +2.42   1.55e-02    up  >2 sigma
-  R1_ch3  120  120    0.274320    0.274697   +0.000376  0.004915   +0.59   5.53e-01    up      n.s.
-  R1_ch4  120  120    0.148303    0.149687   +0.001384  0.005353   +2.00   4.52e-02    up  >2 sigma
-  R1_ch5  120  120    0.368215    0.368409   +0.000193  0.004242   +0.35   7.24e-01    up      n.s.
-  R2_ch1  120  120    0.234510    0.235324   +0.000814  0.005164   +1.22   2.22e-01    up      n.s.
-  R2_ch2  120  120    0.238366    0.239119   +0.000753  0.005735   +1.02   3.09e-01    up      n.s.
-  R2_ch3  120  120    0.240849    0.241520   +0.000672  0.004100   +1.27   2.05e-01    up      n.s.
-  R2_ch4  120  120    0.218616    0.219430   +0.000814  0.005166   +1.22   2.22e-01    up      n.s.
-  R2_ch5  120  120    0.340381    0.340747   +0.000366  0.004030   +0.70   4.81e-01    up      n.s.
+  R1_ch1  180  180    0.236140    0.236791   +0.000651  0.004475   +1.38   1.67e-01    up      n.s.
+  R1_ch2  180  180    0.228570    0.229947   +0.001377  0.004557   +2.87   4.15e-03    up  >2 sigma
+  R1_ch3  180  180    0.274263    0.274473   +0.000210  0.004915   +0.41   6.85e-01    up      n.s.
+  R1_ch4  180  180    0.148371    0.149470   +0.001099  0.005353   +1.95   5.15e-02    up      n.s.
+  R1_ch5  180  180    0.368361    0.368714   +0.000353  0.004242   +0.79   4.30e-01    up      n.s.
+  R2_ch1  180  180    0.234381    0.235208   +0.000828  0.005164   +1.52   1.28e-01    up      n.s.
+  R2_ch2  180  180    0.238301    0.239027   +0.000726  0.005735   +1.20   2.30e-01    up      n.s.
+  R2_ch3  180  180    0.240974    0.241612   +0.000638  0.004100   +1.48   1.40e-01    up      n.s.
+  R2_ch4  180  180    0.218684    0.219288   +0.000604  0.005166   +1.11   2.68e-01    up      n.s.
+  R2_ch5  180  180    0.340323    0.340757   +0.000434  0.004030   +1.02   3.07e-01    up      n.s.
 
   shift = after - before (sign = direction). z = shift / sigma_shift,
   sigma_shift = sigma_V * sqrt(1/n_before + 1/n_after).
 
 ------------------------------------------------------------------------------
-COLLECTIVE SHIFT  (default window = 120 min)
+COLLECTIVE SHIFT  (default window = 180 min)
 ------------------------------------------------------------------------------
 Sensors usable               : 10
 Moved up / down              : 10 up, 0 down (consensus: up)
-Individually significant     : 2 at >2 sigma, 0 at >3 sigma
+Individually significant     : 1 at >2 sigma, 0 at >3 sigma
 
 Sign / binomial test (are up vs down counts a fair coin?)
   two-sided p                : 1.953e-03  (>3 sigma)
 Stouffer combined z (consistent small shifts add up)
-  Z = sum(z_i)/sqrt(N)       : +3.64
-  two-sided p                : 2.685e-04  (>3 sigma)
+  Z = sum(z_i)/sqrt(N)       : +4.34
+  two-sided p                : 1.441e-05  (>3 sigma)
 
   Interpretation: even when individual sensors are 'n.s.', a consistent
   direction across all sensors (low sign_p) and/or a large Stouffer Z is
