@@ -1,6 +1,6 @@
-channel,shielding,dvt_mean_v,dvt_sigma_v,dose_rad,dose_sigma_rad,reduction_pct,z_vs_bare,p_vs_bare,significance
-1,None (bare),1.74538,0.00338,8105.75,1241.96,0.0,,,reference
-2,2 mm Al,1.35241,0.00357,5358.88,802.22,33.9,79.93,0.00e+00,>3 sigma
-3,MLC1,1.19989,0.00315,4225.93,774.1,47.9,118.06,0.00e+00,>3 sigma
-4,MLC1-b + Al,0.9091,0.00372,2852.67,510.37,64.8,166.4,0.00e+00,>3 sigma
-5,MLC2,1.0589,0.00292,3540.41,641.6,56.3,153.6,0.00e+00,>3 sigma
+channel,shielding,dvt_mean_v,dvt_sigma_v,dose_rad,dose_sigma_rad,attenuation_factor,attenuation_ci95_lo,attenuation_ci95_hi,reduction_pct,reduction_pct_ci95_lo,reduction_pct_ci95_hi,z_vs_bare,p_vs_bare,significance
+1,None (bare),1.74538,0.00338,8105.75,1241.96,1.0,,,0.0,,,,,reference
+2,2 mm Al,1.35241,0.00357,5358.88,802.22,1.513,1.159,2.305,33.9,13.8,56.6,79.93,0.00e+00,>3 sigma
+3,MLC1-b + Al,1.19989,0.00315,4225.93,774.1,1.918,1.385,2.722,47.9,27.8,63.3,118.06,0.00e+00,>3 sigma
+4,MLC2,0.9091,0.00372,2852.67,510.37,2.841,1.769,4.011,64.8,43.5,75.1,166.4,0.00e+00,>3 sigma
+5,MLC1,1.0589,0.00292,3540.41,641.6,2.289,1.507,3.243,56.3,33.6,69.2,153.6,0.00e+00,>3 sigma

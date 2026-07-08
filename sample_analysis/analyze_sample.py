@@ -22,7 +22,10 @@ Pipeline
        - significance of each config vs the bare sensor, tested in VOLTAGE
          space (measurement-only -> calibration error is common-mode and
          cancels in the difference);
-       - a pairwise z-score matrix across all configurations.
+       - a pairwise z-score matrix across all configurations;
+       - attenuation factor & dose reduction vs bare with Monte Carlo
+         confidence intervals (calibration sampled common-mode across
+         channels, dVt sampled per channel, curve selection re-run per draw).
   7. Write a text report and a tidy per-configuration summary CSV.
 
 Run:
@@ -34,12 +37,14 @@ Run:
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from calibration import (
+    CALIBRATION_CURVES,
     SHIELDING_BY_CHANNEL,
     SIGMA_V_COVERAGE,
     SIGMA_V_SOURCE,
@@ -79,6 +84,13 @@ TIMESTAMP_VALID_MAX = pd.Timestamp("2100-01-01")
 # Significance thresholds on |z| (difference / combined sigma).
 Z_95 = 1.96      # ~2 sigma, 95% two-sided
 Z_997 = 3.0      # ~3 sigma, 99.7% two-sided
+
+# Monte Carlo propagation of the ratio quantities (attenuation factor and
+# % dose reduction vs the bare channel), for which linear error propagation
+# is awkward (nonlinear ratio, correlated calibration error, curve switching).
+N_MC = 10_000        # draws
+MC_SEED = 20260707   # fixed so reports are reproducible run-to-run
+MC_CI_PCT = 95.0     # width of the percentile confidence interval
 
 
 # --------------------------------------------------------------------------- #
@@ -255,10 +267,86 @@ def pairwise_z_matrix(per_channel: dict, channels: list[int]) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# Monte Carlo CIs for attenuation factor & dose reduction
+# --------------------------------------------------------------------------- #
+
+def monte_carlo_shielding_ci(per_channel: dict, ref_ch: int,
+                             n_draws: int = N_MC, seed: int = MC_SEED) -> dict:
+    """
+    Monte Carlo confidence intervals for the attenuation factor
+    (dose_bare / dose_config) and dose reduction (%) of each configuration
+    relative to the bare reference channel.
+
+    Per draw:
+      * every calibration curve's (A, B) is sampled ONCE and shared by ALL
+        channels. The calibration error is common-mode (Section 9 of the
+        methodology): it shifts every configuration together and largely
+        cancels in a dose RATIO. Sampling it per-channel instead would
+        overstate the ratio uncertainty.
+      * each channel's combined dVt is sampled from its measurement sigma
+        (the inverse-variance-combined lead-brick sigma_V);
+      * the dose conversion re-runs the narrow->wide curve selection with the
+        perturbed curves, so curve-choice switching is propagated too.
+
+    The CI is the percentile interval of the draws (MC_CI_PCT wide), reported
+    with the MC median as the central value.
+
+    Returns {channel: {"n_used": int,
+                       "attenuation": (median, ci_lo, ci_hi),
+                       "reduction_pct": (median, ci_lo, ci_hi)}}
+    for every non-reference channel with usable data ({} if the reference
+    itself is unusable).
+    """
+    ref = per_channel.get(ref_ch, {})
+    if not np.isfinite(ref.get("dvt_mean", np.nan)):
+        return {}
+
+    rng = np.random.default_rng(seed)
+    chans = [ch for ch, c in per_channel.items()
+             if np.isfinite(c.get("dvt_mean", np.nan))]
+
+    doses = {ch: np.full(n_draws, np.nan) for ch in chans}
+    for i in range(n_draws):
+        # One shared draw of the calibration coefficients (common-mode).
+        # A and B are many sigma away from 0, so the positivity clip is a
+        # numerical safety net, not a distortion of the distribution.
+        curves = [
+            replace(c,
+                    A=max(rng.normal(c.A, c.sigma_A), 1e-12),
+                    B=max(rng.normal(c.B, c.sigma_B), 1e-12))
+            for c in CALIBRATION_CURVES
+        ]
+        for ch in chans:
+            c = per_channel[ch]
+            dvt = rng.normal(c["dvt_mean"], c["dvt_sigma"])
+            _, dose, _ = select_curve_and_dose(dvt, curves)
+            if np.isfinite(dose) and dose > 0:
+                doses[ch][i] = dose
+
+    lo_q = (100.0 - MC_CI_PCT) / 2.0
+    hi_q = 100.0 - lo_q
+    out: dict = {}
+    for ch in chans:
+        if ch == ref_ch:
+            continue
+        ok = np.isfinite(doses[ref_ch]) & np.isfinite(doses[ch])
+        if not ok.any():
+            continue
+        att = doses[ref_ch][ok] / doses[ch][ok]
+        red = (1.0 - doses[ch][ok] / doses[ref_ch][ok]) * 100.0
+        out[ch] = {
+            "n_used": int(ok.sum()),
+            "attenuation": tuple(np.percentile(att, [50.0, lo_q, hi_q])),
+            "reduction_pct": tuple(np.percentile(red, [50.0, lo_q, hi_q])),
+        }
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Reporting
 # --------------------------------------------------------------------------- #
 
-def build_report(per_channel, trial_results, sig, zmat, qc) -> str:
+def build_report(per_channel, trial_results, sig, zmat, qc, mc) -> str:
     lines: list[str] = []
     sep = "=" * 78
     sub = "-" * 78
@@ -358,6 +446,35 @@ def build_report(per_channel, trial_results, sig, zmat, qc) -> str:
         )
     lines.append("")
 
+    # Attenuation factor & dose reduction with Monte Carlo CIs
+    lines.append(sub)
+    lines.append(f"ATTENUATION & DOSE REDUCTION vs BARE "
+                 f"(Monte Carlo {MC_CI_PCT:g}% CI, N={N_MC}, seed={MC_SEED})")
+    lines.append(sub)
+    lines.append("  Per draw the calibration (A, B) is sampled ONCE and shared by all")
+    lines.append("  channels (common-mode, cancels in the ratio); each channel's dVt is")
+    lines.append("  sampled from its measurement sigma; curve selection is re-run per draw.")
+    lines.append("  Central value = MC median; CI = percentile interval of the draws.")
+    lines.append("")
+    lines.append(f"{'config':>14} {'ch':>2} {'atten':>7} {'95% CI':>17} "
+                 f"{'red[%]':>8} {'95% CI':>17}")
+    for ch in EXPECTED_CHANNELS:
+        if ch == UNSHIELDED_CHANNEL:
+            lines.append(f"{shielding_label(ch):>14} {ch:>2}  (reference)")
+            continue
+        m = mc.get(ch)
+        if not m:
+            lines.append(f"{shielding_label(ch):>14} {ch:>2}   (no valid data)")
+            continue
+        am, alo, ahi = m["attenuation"]
+        rm, rlo, rhi = m["reduction_pct"]
+        lines.append(
+            f"{shielding_label(ch):>14} {ch:>2} {am:>7.2f} "
+            f"[{alo:>6.2f}, {ahi:>6.2f}] {rm:>7.1f} "
+            f"[{rlo:>6.1f}, {rhi:>6.1f}]"
+        )
+    lines.append("")
+
     # Pairwise |z| matrix
     lines.append(sub)
     lines.append("PAIRWISE |z| MATRIX (dVt difference; >2 = 95%, >3 = 99.7%)")
@@ -412,8 +529,9 @@ def main() -> None:
 
     sig = significance_vs_reference(per_channel, UNSHIELDED_CHANNEL)
     zmat = pairwise_z_matrix(per_channel, EXPECTED_CHANNELS)
+    mc = monte_carlo_shielding_ci(per_channel, UNSHIELDED_CHANNEL)
 
-    report = build_report(per_channel, trial_results, sig, zmat, qc)
+    report = build_report(per_channel, trial_results, sig, zmat, qc, mc)
     REPORT_PATH.write_text(report, encoding="utf-8")
 
     # Tidy summary CSV.
@@ -423,6 +541,9 @@ def main() -> None:
         c = per_channel.get(ch, {})
         dose = c.get("dose_mean", float("nan"))
         s = sig.get(ch, {})
+        m = mc.get(ch, {})
+        att_ci = m.get("attenuation")
+        red_ci = m.get("reduction_pct")
         rows.append({
             "channel": ch,
             "shielding": shielding_label(ch),
@@ -430,7 +551,12 @@ def main() -> None:
             "dvt_sigma_v": round(c.get("dvt_sigma", float("nan")), 5) if np.isfinite(c.get("dvt_sigma", np.nan)) else "",
             "dose_rad": round(dose, 2) if np.isfinite(dose) else "",
             "dose_sigma_rad": round(c.get("dose_sigma", float("nan")), 2) if np.isfinite(c.get("dose_sigma", np.nan)) else "",
+            "attenuation_factor": round(ref_dose / dose, 3) if np.isfinite(dose) and np.isfinite(ref_dose) and dose > 0 else "",
+            "attenuation_ci95_lo": round(att_ci[1], 3) if att_ci else "",
+            "attenuation_ci95_hi": round(att_ci[2], 3) if att_ci else "",
             "reduction_pct": round((1 - dose / ref_dose) * 100, 1) if np.isfinite(dose) and np.isfinite(ref_dose) and ref_dose > 0 else "",
+            "reduction_pct_ci95_lo": round(red_ci[1], 1) if red_ci else "",
+            "reduction_pct_ci95_hi": round(red_ci[2], 1) if red_ci else "",
             "z_vs_bare": round(s.get("z", float("nan")), 2) if np.isfinite(s.get("z", np.nan)) else "",
             "p_vs_bare": f"{s.get('p', float('nan')):.2e}" if np.isfinite(s.get("p", np.nan)) else "",
             "significance": s.get("label", "reference" if ch == UNSHIELDED_CHANNEL else ""),

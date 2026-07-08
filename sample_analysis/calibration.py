@@ -91,13 +91,13 @@ CALIBRATION_CURVES: list[CalibrationCurve] = [
 # "R1" and "R2", which we treat as two independent TRIALS (replicates) of the
 # same shielding configuration.
 #
-# Channel -> shielding mapping (confirmed 2026-06-17):
+# Channel -> shielding mapping (per RADFET ISS Dose-Analysis Methodology, Section 4):
 SHIELDING_BY_CHANNEL: dict[int, str] = {
     1: "None (bare)",
     2: "2 mm Al",
-    3: "MLC1",
-    4: "MLC1-b + Al",
-    5: "MLC2",
+    3: "MLC1-b + Al",
+    4: "MLC2",
+    5: "MLC1",
 }
 
 # The reference channel against which shielding attenuation is measured.
@@ -201,7 +201,7 @@ def shielding_label(channel: int) -> str:
 # Conversion
 # --------------------------------------------------------------------------- #
 
-def select_curve_and_dose(dvt: float):
+def select_curve_and_dose(dvt: float, curves: list[CalibrationCurve] | None = None):
     """
     Convert a threshold-voltage shift dVt [V] to dose [Rad].
 
@@ -212,6 +212,10 @@ def select_curve_and_dose(dvt: float):
     Varadis' "use the curve applicable to the actual dose range" instruction
     without knowing the dose in advance.
 
+    `curves` overrides the curve set walked (same narrow->wide order expected);
+    Monte Carlo propagation passes coefficient-perturbed copies here so each
+    draw re-runs the selection with the canonical logic.
+
     Returns a 3-tuple:
         curve        : the CalibrationCurve used (or None for invalid input)
         dose_rad     : dose in Rad (NaN for invalid input)
@@ -221,8 +225,11 @@ def select_curve_and_dose(dvt: float):
     if not np.isfinite(dvt) or dvt <= 0:
         return None, float("nan"), False
 
+    if curves is None:
+        curves = CALIBRATION_CURVES
+
     last_curve, last_dose = None, float("nan")
-    for curve in CALIBRATION_CURVES:  # narrowest -> widest
+    for curve in curves:  # narrowest -> widest
         dose = curve.dose_from_dvt(dvt)
         last_curve, last_dose = curve, dose
         if dose <= curve.dose_max_rad:

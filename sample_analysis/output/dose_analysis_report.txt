@@ -6,7 +6,7 @@ Output directory   : C:\Coding_Projects\radfet_data_analysis\sample_analysis\out
 Calibration        : Varadis QF 16 (dVt = A * Dose^B), 5 ranges
 Trials per sensor  : R1, R2 (inverse-variance combined)
 Measurement sigma  : per-sensor lead-brick sigma_V (coverage factor 1)
-  sigma_V source   : parsed from analysis_report.txt
+  sigma_V source   : fallback (transcribed)
 Valid voltage band : (0.0, 4.0] V; saturation raw_adc >= 4090
 
 ------------------------------------------------------------------------------
@@ -26,12 +26,12 @@ PER-SENSOR, PER-TRIAL (measurement sigma = lead-brick sigma_V)
    None (bare)  1    R2   43    1.7251   0.0052  0-10 kRad      7953.4    1217.7
        2 mm Al  2    R1   44    1.3624   0.0046  0-10 kRad      5423.5     812.6
        2 mm Al  2    R2   44    1.3365   0.0057   0-5 kRad      4923.2     910.5
-          MLC1  3    R1   44    1.2121   0.0049   0-5 kRad      4286.8     786.2
-          MLC1  3    R2   44    1.1914   0.0041   0-5 kRad      4183.7     766.0
-   MLC1-b + Al  4    R1   44    0.9193   0.0054   0-5 kRad      2898.1     519.3
-   MLC1-b + Al  4    R2   44    0.8996   0.0052   0-5 kRad      2810.6     502.6
-          MLC2  5    R1   44    1.0715   0.0042   0-5 kRad      3600.1     653.2
-          MLC2  5    R2   44    1.0476   0.0040   0-5 kRad      3486.8     631.4
+   MLC1-b + Al  3    R1   44    1.2121   0.0049   0-5 kRad      4286.8     786.2
+   MLC1-b + Al  3    R2   44    1.1914   0.0041   0-5 kRad      4183.7     766.0
+          MLC2  4    R1   44    0.9193   0.0054   0-5 kRad      2898.1     519.3
+          MLC2  4    R2   44    0.8996   0.0052   0-5 kRad      2810.6     502.6
+          MLC1  5    R1   44    1.0715   0.0042   0-5 kRad      3600.1     653.2
+          MLC1  5    R2   44    1.0476   0.0040   0-5 kRad      3486.8     631.4
 
 ------------------------------------------------------------------------------
 FINAL RESULT PER CONFIGURATION (R1+R2 combined)
@@ -39,9 +39,9 @@ FINAL RESULT PER CONFIGURATION (R1+R2 combined)
         config ch    dVt[V]  sigV[V]      curve   dose[Rad]   dose +/-
    None (bare)  1    1.7454   0.0034  0-10 kRad      8105.7     1242.0
        2 mm Al  2    1.3524   0.0036  0-10 kRad      5358.9      802.2
-          MLC1  3    1.1999   0.0031   0-5 kRad      4225.9      774.1
-   MLC1-b + Al  4    0.9091   0.0037   0-5 kRad      2852.7      510.4
-          MLC2  5    1.0589   0.0029   0-5 kRad      3540.4      641.6
+   MLC1-b + Al  3    1.1999   0.0031   0-5 kRad      4225.9      774.1
+          MLC2  4    0.9091   0.0037   0-5 kRad      2852.7      510.4
+          MLC1  5    1.0589   0.0029   0-5 kRad      3540.4      641.6
 
   dose +/- is the FULL 1-sigma (measurement (+) calibration sigma_A/sigma_B),
   appropriate for the absolute dose of a single configuration.
@@ -55,9 +55,24 @@ SIGNIFICANCE vs BARE SENSOR (channel 1), voltage space
         config ch  dDose[Rad]  reduction   ddVt[V]       z          p   verdict
    None (bare)  1  (reference)
        2 mm Al  2      2746.9      33.9%    0.3930   79.93   0.00e+00  >3 sigma
-          MLC1  3      3879.8      47.9%    0.5455  118.06   0.00e+00  >3 sigma
-   MLC1-b + Al  4      5253.1      64.8%    0.8363  166.40   0.00e+00  >3 sigma
-          MLC2  5      4565.3      56.3%    0.6865  153.60   0.00e+00  >3 sigma
+   MLC1-b + Al  3      3879.8      47.9%    0.5455  118.06   0.00e+00  >3 sigma
+          MLC2  4      5253.1      64.8%    0.8363  166.40   0.00e+00  >3 sigma
+          MLC1  5      4565.3      56.3%    0.6865  153.60   0.00e+00  >3 sigma
+
+------------------------------------------------------------------------------
+ATTENUATION & DOSE REDUCTION vs BARE (Monte Carlo 95% CI, N=10000, seed=20260707)
+------------------------------------------------------------------------------
+  Per draw the calibration (A, B) is sampled ONCE and shared by all
+  channels (common-mode, cancels in the ratio); each channel's dVt is
+  sampled from its measurement sigma; curve selection is re-run per draw.
+  Central value = MC median; CI = percentile interval of the draws.
+
+        config ch   atten            95% CI   red[%]            95% CI
+   None (bare)  1  (reference)
+       2 mm Al  2    1.52 [  1.16,   2.31]    34.2 [  13.8,   56.6]
+   MLC1-b + Al  3    1.86 [  1.39,   2.72]    46.1 [  27.8,   63.3]
+          MLC2  4    2.74 [  1.77,   4.01]    63.5 [  43.5,   75.1]
+          MLC1  5    2.23 [  1.51,   3.24]    55.3 [  33.6,   69.2]
 
 ------------------------------------------------------------------------------
 PAIRWISE |z| MATRIX (dVt difference; >2 = 95%, >3 = 99.7%)
@@ -65,9 +80,9 @@ PAIRWISE |z| MATRIX (dVt difference; >2 = 95%, >3 = 99.7%)
         ch         1       2       3       4       5
   ch1 None (        -    79.9   118.1   166.4   153.6
   ch2 2 mm A     79.9       -    32.1    86.0    63.6
-  ch3   MLC1    118.1    32.1       -    59.7    32.8
-  ch4 MLC1-b    166.4    86.0    59.7       -    31.7
-  ch5   MLC2    153.6    63.6    32.8    31.7       -
+  ch3 MLC1-b    118.1    32.1       -    59.7    32.8
+  ch4   MLC2    166.4    86.0    59.7       -    31.7
+  ch5   MLC1    153.6    63.6    32.8    31.7       -
 
 ==============================================================================
 End of report.
