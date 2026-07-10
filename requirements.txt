@@ -1,1 +1,4 @@
-pandas==3.0.3
+pandas>=2.2
+numpy>=1.26
+streamlit>=1.40
+plotly>=5.24

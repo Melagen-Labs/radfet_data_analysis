@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated simulation data (regenerable via simulation/generate_iss_mission.py)
+simulation/output/
